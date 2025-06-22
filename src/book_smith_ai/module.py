@@ -6,8 +6,8 @@ import time
 from pathlib import Path
 
 # EPUB creation libraries
-from ebooklib import epub
-import pypub
+#from ebooklib import epub
+#import pypub
 
 # Additional utilities
 import re
@@ -120,7 +120,7 @@ class PerplexityBookGenerator:
 
         """
     
-    return self.send_api_payload(concept_prompt)
+        return self.send_api_payload(concept_prompt)
 
 
 if __name__ == "__main__":
@@ -132,5 +132,10 @@ if __name__ == "__main__":
     """
     # print(PerplexityBookGenerator(my_api_key).send_api_payload(prompt, debug=True))
     # print(PerplexityBookGenerator(my_api_key, prompt).generate_book_concept())
+    with open("tests/book_concept_test_1.json", "w", encoding="utf-8") as file:
+        file.write(
+            PerplexityBookGenerator(
+                my_api_key, prompt
+                ).generate_book_concept())
 
     

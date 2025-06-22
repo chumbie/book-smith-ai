@@ -1,0 +1,67 @@
+```json
+{
+  "expanded_title": "Static from the Grave",
+  "subtitle": "When the last human in orbit hears Earth's ghostly transmission, he must decide if it's salvation or damnation calling home.",
+  "target_audience": {
+    "primary": "Adult science fiction readers",
+    "secondary": [
+      "Psychological thriller enthusiasts",
+      "Dystopian/post-apocalyptic fans",
+      "Isolation horror aficionados"
+    ],
+    "key_interests": [
+      "Space survival narratives",
+      "First contact mysteries",
+      "Existential technology ethics",
+      "Atmospheric tension"
+    ]
+  },
+  "core_themes": [
+    "The psychological toll of absolute isolation",
+    "Humanity's legacy in technological decay",
+    "The duality of hope as salvation/self-destruction",
+    "Ethical responsibility in extinction scenarios",
+    "The unreliability of perception in prolonged solitude",
+    "Communication as both lifeline and weapon"
+  ],
+  "genre_classification": {
+    "primary": "Science Fiction",
+    "secondary": [
+      "Psychological Thriller",
+      "Cosmic Horror",
+      "Dystopian Fiction"
+    ],
+    "tone": "Claustrophobic tension building to existential dread, punctuated by moments of desperate hope"
+  },
+  "word_count": 85000,
+  "chapter_structure": {
+    "prologue": "Daily life aboard the decaying station 'Nyx', establishing the operator's isolation and Earth's long silence",
+    "act_1_discovery": [
+      "Routine maintenance reveals anomalous energy signature",
+      "First signal interception and initial denial",
+      "Corroborating evidence of terrestrial origin",
+      "Initial failed attempts at decryption",
+      "Emergence of psychological side effects"
+    ],
+    "act_2_investigation": [
+      "Discovering embedded coordinates in signal",
+      "Station systems reacting unpredictably to transmission",
+      "Revelation of signal's non-human origin point",
+      "Flashbacks to Earth's final days",
+      "Physical manifestations of signal's influence",
+      "Critical life support failure triggered by signal"
+    ],
+    "act_3_confrontation": [
+      "Decoding the signal's true purpose",
+      "Station AI revealing withheld truths",
+      "Physical journey to compromised core module",
+      "Choice between jamming or amplifying signal",
+      "Direct confrontation with signal's source",
+      "Ultimate sacrifice to protect remnant humanity"
+    ],
+    "epilogue": "Nyx's final transmission echoing into silence, ambiguous evidence of Earth's fate",
+    "total_chapters": 27
+  },
+  "unique_selling_proposition": "Blends the visceral tension of a single-location thriller with cosmic-scale existential dread, exploring how absolute solitude distorts humanity's relationship with its own extinction. The decaying station becomes a character reflecting Earth's corpse."
+}
+```
