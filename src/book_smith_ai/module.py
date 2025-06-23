@@ -3,6 +3,8 @@ import os  # to get API key from environment
 import requests  # to send API requests
 import json  # conversion to/from JSON data object
 import time
+import types  # Import SimpleNamespace for dynamic type creation
+
 from pathlib import Path
 
 # EPUB creation libraries
@@ -14,10 +16,13 @@ import re
 import uuid
 from datetime import datetime
 
+# CONSTANTS
+TEST_CASE = 1
+
 
 class PerplexityBookGenerator:
     ## STEP 1: API Authorization and Setup
-    def __init__(self, api_key, book_idea):
+    def __init__(self, api_key, book_idea, dry_run = False):
         # Set this in Linux w/ $export PERPLEXITY_API_KEY=<your api key>         
         self.api_key = os.getenv("PERPLEXITY_API_KEY")
         if not api_key:
@@ -30,12 +35,54 @@ class PerplexityBookGenerator:
             "Content-Type": "application/json"
         }
         self.book_idea = book_idea
+        # Will use stored tests/ data instead of calling LLM
+        self.dry_run = dry_run
+
+    @staticmethod  # Declares this method as static (no self/cls parameter needed)
+    def _dict_to_namespace(data):
+        """
+        Recursively converts nested dictionaries/lists into 
+        dot-accessible namespaces.
+        
+        Args:
+            data: Input data (dict, list, or primitive) to convert
+            
+        Returns:
+            types.SimpleNamespace for dictionaries, 
+            processed list for lists, 
+            unchanged data for primitives
+        """
+        
+        # Handle dictionary inputs: recursively process nested values
+        if isinstance(data, dict):
+            # Recursively convert each value in the dictionary
+            converted = {
+                k: PerplexityBookGenerator._dict_to_namespace(v) 
+                for k, v in data.items()
+            }
+            # Convert processed dictionary to namespace object
+            return types.SimpleNamespace(**converted)
+        
+        # Handle list inputs: recursively process each item
+        elif isinstance(data, list):
+            # Recursively convert each element in the list
+            return [
+                PerplexityBookGenerator._dict_to_namespace(item) 
+                for item in data
+            ]
+        
+        # Base case: return primitives unchanged (terminate recursion)
+        else:
+            return data
+
+
 
     def send_api_payload(self, 
         prompt: str, role: str = "You are a helpful assistant.", 
         model: str = "r1-1776", temp: float = 0.7,
         debug: bool = False) -> str:
-        
+            """Method to submit prompts to LLM"""
+
             self.payload = {
             "model": model,  # Use "sonar-pro" or another Pro model
             "messages": [
@@ -63,8 +110,13 @@ class PerplexityBookGenerator:
                     )
 
 
-    ## Step 2: Go from book concept to comprehensive 
-    def generate_book_concept(self):
+    ## Step 2: Go from book idea to comprehensive concept specification 
+    def generate_book_spec(self) -> dict:
+        """
+        Sends book concept to Perplexity, in order to create a
+        specification of book elements to use further in the
+        generation process
+        """
         concept_prompt = f"""
         Based on this book idea: "{self.book_idea}"
         
@@ -119,23 +171,57 @@ class PerplexityBookGenerator:
         }}
 
         """
-    
-        return self.send_api_payload(concept_prompt)
+        print("Generating book specification...")
+        if self.dry_run:
+            # Dry run means get the json from file, instead of api
+            with open(f"tests/book_concept_test_{TEST_CASE}.json", "r") as f:
+                response = f.read()
+        else:
+            # Get response from LLM
+            response = self.send_api_payload(concept_prompt)
+        # Remove markdown formatting before returning
+
+        book_spec_dict = json.loads(response.replace("```json\n","").replace("\n```", ""))
+        # Store spec dictionary values as class attributes
+        # self.title: str = book_spec_dict["expanded_title"]
+        # self.subtitle: str = book_spec_dict["subtitle"]
+        # self.core_themes: list = book_spec_dict["core_themes"]
+        # self.genre: str = book_spec_dict["genre_classification"]["primary"]
+        # self.subgenres: list = book_spec_dict["genre_classification"]["secondary"]
+        # self.tone: str = book_spec_dict["genre_classification"]["tone"]
+        # self.word_count: str = book_spec_dict["word_count"]
+        # self.prologue: str = book_spec_dict["chapter_structure"]["prologue"]
+        self.book_spec = self._dict_to_namespace(book_spec_dict)
+        return json.loads(response.replace("```json\n","").replace("\n```", ""))
 
 
 if __name__ == "__main__":
+    from pprint import pprint
     my_api_key = os.getenv("PERPLEXITY_API_KEY")
-    prompt = """
+    prompt_1 = """
     A lone radio operator on a decaying space station intercepts a 
     signal from Earth—centuries after humanity was believed extinct. 
     Is it a distress call, or something far more sinister?
     """
     # print(PerplexityBookGenerator(my_api_key).send_api_payload(prompt, debug=True))
-    # print(PerplexityBookGenerator(my_api_key, prompt).generate_book_concept())
-    with open("tests/book_concept_test_1.json", "w", encoding="utf-8") as file:
-        file.write(
-            PerplexityBookGenerator(
-                my_api_key, prompt
-                ).generate_book_concept())
+    # print(PerplexityBookGenerator(my_api_key, prompt, dry_run=True).generate_book_spec())
+    # with open("tests/book_concept_test_1.json", "w", encoding="utf-8") as file:
+    #     file.write(
+    #         PerplexityBookGenerator(
+    #             my_api_key, prompt
+    #             ).generate_book_spec())
 
-    
+    bookGen = PerplexityBookGenerator(my_api_key, prompt_1, dry_run=True)
+    bookGen.generate_book_spec()
+    pprint(vars(bookGen))
+    print("TITLE:", bookGen.book_spec.expanded_title, sep="\n")
+    # print("SUBTITLE:", bookGen.subtitle, sep="\n")
+    # print("CORE_THEMES:", bookGen.core_themes, sep="\n")
+    # print("CORE_THEMES (type):", type(bookGen.core_themes), sep="\n")
+    # print("GENRE:", bookGen.genre, sep="\n")
+    # print("SUBGENRES:", bookGen.subgenres, sep="\n")
+    # print("TONE:", bookGen.tone, sep="\n")
+    # print("TONE:", bookGen.prologue, sep="\n")
+
+    # print(book.title)
+    # print(book.title)
