@@ -37,17 +37,24 @@ https://docs.pytest.org/en/stable/how-to/monkeypatch.html
 
 
 """
-
+# Standard Imports
+import os
+from unittest import mock
 
 # Third Party Imports
 import pytest
 
+# Custom Imports
+from book_smith_ai.module import PerplexityBookGenerator
+
+# Import Logging and config
 import logging
 from sys import stderr
 logging.basicConfig(stream=stderr, level=logging.DEBUG)
 
-# Custom Imports
-from book_smith_ai import module as bsai
+# Constants
+MOCK_API_KEY = "test_api_key"
+
 
 @pytest.fixture
 def test_book_idea_1():
@@ -57,14 +64,93 @@ def test_book_idea_1():
     Is it a distress call, or something far more sinister?
     """
 
+@pytest.fixture
+def set_test_api_key(monkeypatch):
+        monkeypatch.setenv("PERPLEXITY_API_KEY", MOCK_API_KEY)
+
+
  
 class TestPyTest:
-    def test_pass(self):
+    def test_0_pass(self):
         assert 1 + 1 == 2
         def test_exception(self):
             with pytest.raises(SystemExit) as err:
                 raise SystemExit(1)
         
     @pytest.mark.skip(reason="example of un-implemented test")
-    def test_not_implemented(self):
+    def test_0_not_implemented(self):
         ...
+
+
+class TestModule:
+    def test_1_constructor_sets_correct_attributes(
+        self, monkeypatch, set_test_api_key):
+        """Test attribute initialization with valid API key"""
+        set_test_api_key
+        mock_api_key = "test_api_key"
+        book_idea = "Test book idea"
+        generator = PerplexityBookGenerator(book_idea=book_idea)
+        
+        assert generator.api_key == mock_api_key
+        assert generator.book_idea == book_idea
+        assert generator.base_url == "https://api.perplexity.ai/chat/completions"
+        assert generator.headers == {
+            "Authorization": f"Bearer {mock_api_key}",
+            "Content-Type": "application/json"
+        }
+
+    def test_2_constructor_raises_error_without_api_key(self, monkeypatch):
+        """Test ValueError when API key is missing"""
+        monkeypatch.delenv("PERPLEXITY_API_KEY", raising=False)
+        with pytest.raises(ValueError) as excinfo:
+            PerplexityBookGenerator(book_idea="Test")
+        assert "PERPLEXITY_API_KEY environment variable" in str(excinfo.value)
+
+    def test_3_dict_to_namespace_conversion(self):
+        """Test nested dictionary conversion to dot-accessible namespace"""
+        test_data = {
+            "key1": "value1",
+            "nested": {
+                "subkey": [1, 2, 3],
+                "subdict": {"k": "v"}
+            }
+        }
+        result = PerplexityBookGenerator._dict_to_namespace(test_data)
+        assert result.key1 == "value1"
+        assert result.nested.subkey == [1, 2, 3]
+        assert result.nested.subdict.k == "v"
+
+    @mock.patch("requests.post")
+    def test_4_send_api_payload_success(self, mock_post, set_test_api_key):
+        """
+        Test that PerplexityBookGenerator.send_api_payload returns the correct content
+        when the API call is successful and the response is well-formed.
+        """
+        # Create a mock response object to simulate the result of requests.post
+        mock_response = mock.Mock()
+        # Configure the mock to return a specific JSON structure 
+        # when .json() is called.
+        # This structure mimics the actual API response expected by the method.
+        mock_response.json.return_value = {
+            "choices": [{"message": {"content": "TEST_RESPONSE"}}]
+        }
+        # Simulate a successful HTTP response by making 
+        # .raise_for_status() do nothing.
+        mock_response.raise_for_status.return_value = None
+        # Set the mock_post (the patched requests.post) to 
+        # return our mock_response object.
+        mock_post.return_value = mock_response
+
+        # Instantiate the generator with a test book idea.
+        # Note: api_key is fetched from the environment in the class, 
+        # so ensure it's set for the test.
+        set_test_api_key
+        generator = PerplexityBookGenerator(book_idea="test")
+
+        # Call the method under test with a sample prompt.
+        response = generator.send_api_payload("Test prompt")
+
+        # Assert that the returned response matches the mocked content.
+        assert response == "TEST_RESPONSE"
+        # Assert that the requests.post function was called exactly once.
+        mock_post.assert_called_once()

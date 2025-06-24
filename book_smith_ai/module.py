@@ -22,16 +22,16 @@ TEST_CASE = 1
 
 class PerplexityBookGenerator:
     ## STEP 1: API Authorization and Setup
-    def __init__(self, api_key, book_idea, dry_run = False):
+    def __init__(self, book_idea, dry_run = False):
         # Set this in Linux w/ $export PERPLEXITY_API_KEY=<your api key>         
         self.api_key = os.getenv("PERPLEXITY_API_KEY")
-        if not api_key:
+        if not self.api_key:
             raise ValueError(
                 "Please set the PERPLEXITY_API_KEY environment variable."
                 )
         self.base_url = "https://api.perplexity.ai/chat/completions"
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
         self.book_idea = book_idea
