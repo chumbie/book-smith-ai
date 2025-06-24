@@ -174,25 +174,22 @@ class PerplexityBookGenerator:
         print("Generating book specification...")
         if self.dry_run:
             # Dry run means get the json from file, instead of api
-            with open(f"tests/book_concept_test_{TEST_CASE}.json", "r") as f:
+            fname = f"tests/book_concept_test_{TEST_CASE}.json"
+            print(f"dry_run=true, getting concept from file: {fname}")
+            with open(fname, "r") as f:
                 response = f.read()
         else:
             # Get response from LLM
             response = self.send_api_payload(concept_prompt)
+        
         # Remove markdown formatting before returning
-
         book_spec_dict = json.loads(response.replace("```json\n","").replace("\n```", ""))
-        # Store spec dictionary values as class attributes
-        # self.title: str = book_spec_dict["expanded_title"]
-        # self.subtitle: str = book_spec_dict["subtitle"]
-        # self.core_themes: list = book_spec_dict["core_themes"]
-        # self.genre: str = book_spec_dict["genre_classification"]["primary"]
-        # self.subgenres: list = book_spec_dict["genre_classification"]["secondary"]
-        # self.tone: str = book_spec_dict["genre_classification"]["tone"]
-        # self.word_count: str = book_spec_dict["word_count"]
-        # self.prologue: str = book_spec_dict["chapter_structure"]["prologue"]
+        
+        # Store dictionary as accessible nested class attributes
         self.book_spec = self._dict_to_namespace(book_spec_dict)
-        return json.loads(response.replace("```json\n","").replace("\n```", ""))
+        
+        # Return book_spec
+        return book_spec_dict
 
 
 if __name__ == "__main__":
@@ -213,10 +210,12 @@ if __name__ == "__main__":
 
     bookGen = PerplexityBookGenerator(my_api_key, prompt_1, dry_run=True)
     bookGen.generate_book_spec()
-    pprint(vars(bookGen))
+    # pprint(vars(bookGen))
     print("TITLE:", bookGen.book_spec.expanded_title, sep="\n")
-    # print("SUBTITLE:", bookGen.subtitle, sep="\n")
-    # print("CORE_THEMES:", bookGen.core_themes, sep="\n")
+    print("SUBTITLE:", bookGen.book_spec.subtitle, sep="\n")
+    print("CORE_THEMES:", bookGen.book_spec.target_audience.primary, sep="\n")
+    print("CORE_THEMES:", bookGen.book_spec.target_audience.secondary, sep="\n")
+    print("CORE_THEMES:", bookGen.book_spec.target_audience.key_interests, sep="\n")
     # print("CORE_THEMES (type):", type(bookGen.core_themes), sep="\n")
     # print("GENRE:", bookGen.genre, sep="\n")
     # print("SUBGENRES:", bookGen.subgenres, sep="\n")
