@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.4.2  # Use the latest stable version
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.7.0
+    hooks:
+      - id: autopep8
+        args: [--in-place, --aggressive, --aggressive]
+        
